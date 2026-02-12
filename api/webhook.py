@@ -115,7 +115,7 @@ class handler(BaseHTTPRequestHandler):
         # Check if this is from Apple Shortcuts (JSON) or Twilio (form data)
         content_type = self.headers.get("Content-Type", "")
 
-        if "applications/json" in content_type:
+        if "application/json" in content_type:
             # From Apple Shortcuts
             data = json.loads(body)
             food_description = data.get("food", "")
