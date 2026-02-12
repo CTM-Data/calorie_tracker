@@ -3,6 +3,7 @@ from urllib.parse import parse_qs
 from datetime import datetime
 import json
 import os
+from zoneinfo import ZoneInfo
 
 from anthropic import Anthropic
 import gspread
@@ -62,7 +63,7 @@ def log_to_sheets(description, calorie_data):
     client = get_sheets_client()
     sheet = client.open_by_key(os.environ["GOOGLE_SHEET_ID"]).sheet1
 
-    now = datetime.now()
+    now = datetime.now(ZoneInfo("America/New_York"))
     date_str = now.strftime("%Y-%m-%d")
     time_str = now.strftime("%I:%M %p")
 
