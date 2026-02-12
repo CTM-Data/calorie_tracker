@@ -3,42 +3,428 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Privacy Policy - Calorie Tracker</title>
+    <title>Calorie Tracker — SMS to Sheets</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
     <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            max-width: 680px;
-            margin: 40px auto;
-            padding: 0 20px;
-            line-height: 1.6;
-            color: #333;
+        :root {
+            --bg: #0a0a0a;
+            --surface: #141414;
+            --border: #222;
+            --text: #e8e4de;
+            --text-muted: #706b63;
+            --accent: #c4f048;
+            --accent-dim: #c4f04815;
         }
-        h1 { font-size: 1.5rem; margin-bottom: 0.25rem; }
-        .updated { color: #666; font-size: 0.9rem; margin-bottom: 2rem; }
-        h2 { font-size: 1.1rem; margin-top: 1.5rem; }
-        p { margin: 0.5rem 0; }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'DM Mono', monospace;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .grain {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            pointer-events: none;
+            opacity: 0.03;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+            z-index: 100;
+        }
+
+        .container {
+            max-width: 720px;
+            margin: 0 auto;
+            padding: 80px 24px 120px;
+        }
+
+        /* --- Header --- */
+        .header {
+            margin-bottom: 80px;
+        }
+
+        .tag {
+            display: inline-block;
+            font-size: 0.65rem;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            color: var(--accent);
+            border: 1px solid var(--accent);
+            padding: 4px 10px;
+            border-radius: 2px;
+            margin-bottom: 24px;
+            animation: fadeIn 0.6s ease both;
+        }
+
+        h1 {
+            font-family: 'Instrument Serif', serif;
+            font-weight: 400;
+            font-size: clamp(2.8rem, 6vw, 4.2rem);
+            line-height: 1.05;
+            letter-spacing: -0.02em;
+            margin-bottom: 20px;
+            animation: fadeIn 0.6s 0.1s ease both;
+        }
+
+        h1 em {
+            font-style: italic;
+            color: var(--accent);
+        }
+
+        .subtitle {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            line-height: 1.7;
+            max-width: 480px;
+            font-weight: 300;
+            animation: fadeIn 0.6s 0.2s ease both;
+        }
+
+        /* --- Flow Diagram --- */
+        .flow {
+            margin-bottom: 80px;
+            animation: fadeIn 0.6s 0.3s ease both;
+        }
+
+        .flow-label {
+            font-size: 0.6rem;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            margin-bottom: 16px;
+        }
+
+        .flow-steps {
+            display: flex;
+            align-items: center;
+            gap: 0;
+            flex-wrap: wrap;
+        }
+
+        .flow-step {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            padding: 14px 18px;
+            font-size: 0.75rem;
+            font-weight: 400;
+            white-space: nowrap;
+            position: relative;
+            transition: border-color 0.3s ease, background 0.3s ease;
+        }
+
+        .flow-step:hover {
+            border-color: var(--accent);
+            background: var(--accent-dim);
+        }
+
+        .flow-step:first-child {
+            border-radius: 4px 0 0 4px;
+        }
+
+        .flow-step:last-child {
+            border-radius: 0 4px 4px 0;
+        }
+
+        .flow-step + .flow-step {
+            border-left: none;
+        }
+
+        .flow-step .emoji {
+            margin-right: 6px;
+        }
+
+        /* --- Sections --- */
+        .section {
+            margin-bottom: 64px;
+        }
+
+        .section-header {
+            font-size: 0.6rem;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            margin-bottom: 20px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        /* --- Demo --- */
+        .demo {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            overflow: hidden;
+            animation: fadeIn 0.6s 0.4s ease both;
+        }
+
+        .demo-bar {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 10px 14px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .demo-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--border);
+        }
+
+        .demo-dot:first-child { background: #ff5f57; }
+        .demo-dot:nth-child(2) { background: #ffbd2e; }
+        .demo-dot:nth-child(3) { background: #28ca41; }
+
+        .demo-content {
+            padding: 24px;
+            font-size: 0.8rem;
+            line-height: 1.8;
+        }
+
+        .demo-input {
+            color: var(--text-muted);
+        }
+
+        .demo-input span {
+            color: var(--accent);
+        }
+
+        .demo-output {
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px dashed var(--border);
+        }
+
+        .demo-output .cal-line {
+            color: var(--text);
+        }
+
+        .demo-output .cal-item {
+            color: var(--text-muted);
+            padding-left: 16px;
+        }
+
+        .demo-output .cal-total {
+            color: var(--accent);
+            margin-top: 8px;
+        }
+
+        /* --- Stack --- */
+        .stack-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 12px;
+        }
+
+        .stack-item {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            padding: 16px 18px;
+            transition: border-color 0.3s ease;
+        }
+
+        .stack-item:hover {
+            border-color: var(--accent);
+        }
+
+        .stack-item-name {
+            font-size: 0.8rem;
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+
+        .stack-item-role {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            font-weight: 300;
+        }
+
+        /* --- How It Works --- */
+        .steps-list {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .step {
+            display: flex;
+            gap: 16px;
+            align-items: flex-start;
+        }
+
+        .step-num {
+            font-family: 'Instrument Serif', serif;
+            font-size: 1.8rem;
+            color: var(--accent);
+            line-height: 1;
+            min-width: 28px;
+        }
+
+        .step-text {
+            font-size: 0.8rem;
+            line-height: 1.7;
+            color: var(--text-muted);
+            font-weight: 300;
+            padding-top: 4px;
+        }
+
+        .step-text strong {
+            color: var(--text);
+            font-weight: 400;
+        }
+
+        /* --- Footer --- */
+        .footer {
+            margin-top: 80px;
+            padding-top: 24px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            animation: fadeIn 0.6s 0.6s ease both;
+        }
+
+        .footer-text {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            font-weight: 300;
+        }
+
+        .footer-link {
+            font-size: 0.7rem;
+            color: var(--accent);
+            text-decoration: none;
+            letter-spacing: 0.05em;
+            transition: opacity 0.3s ease;
+        }
+
+        .footer-link:hover {
+            opacity: 0.7;
+        }
+
+        /* --- Animations --- */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(12px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* --- Mobile --- */
+        @media (max-width: 540px) {
+            .container { padding: 48px 20px 80px; }
+            .header { margin-bottom: 56px; }
+            .flow-steps { flex-direction: column; align-items: stretch; }
+            .flow-step { border-radius: 0; border-left: 1px solid var(--border); }
+            .flow-step + .flow-step { border-top: none; border-left: 1px solid var(--border); }
+            .flow-step:first-child { border-radius: 4px 4px 0 0; }
+            .flow-step:last-child { border-radius: 0 0 4px 4px; }
+        }
     </style>
 </head>
 <body>
-    <h1>Privacy Policy</h1>
-    <p class="updated">Last updated: February 12, 2025</p>
+    <div class="grain"></div>
+    <div class="container">
 
-    <h2>Overview</h2>
-    <p>This is a personal calorie tracking application that uses SMS to log meals. It is built and used solely by one individual for personal health tracking purposes.</p>
+        <header class="header">
+            <div class="tag">Personal Project</div>
+            <h1>Calorie Tracker,<br><em>minus the app.</em></h1>
+            <p class="subtitle">A lightweight system that replaces clunky food tracking apps. Describe what you ate in plain English, get an instant calorie estimate, and log it to a spreadsheet. Built with an iPhone shortcut, a serverless function, and the Claude API.</p>
+        </header>
 
-    <h2>Data Collected</h2>
-    <p>The only data collected is the content of SMS messages sent to the application's phone number, which contain descriptions of meals and food consumed. This data is used exclusively to estimate calorie counts and log them to a private spreadsheet.</p>
+        <div class="flow">
+            <div class="flow-label">The Flow</div>
+            <div class="flow-steps">
+                <div class="flow-step"><span class="emoji">📱</span> Shortcut</div>
+                <div class="flow-step"><span class="emoji">⚡</span> Vercel</div>
+                <div class="flow-step"><span class="emoji">🧠</span> Claude API</div>
+                <div class="flow-step"><span class="emoji">📊</span> Sheets</div>
+                <div class="flow-step"><span class="emoji">💬</span> Reply</div>
+            </div>
+        </div>
 
-    <h2>How Data Is Used</h2>
-    <p>Message contents are sent to an AI API to estimate calorie information, then stored in a private Google Sheet for personal tracking. Data is used solely for the purpose of personal calorie tracking and health monitoring.</p>
+        <div class="section demo">
+            <div class="demo-bar">
+                <div class="demo-dot"></div>
+                <div class="demo-dot"></div>
+                <div class="demo-dot"></div>
+            </div>
+            <div class="demo-content">
+                <div class="demo-input">
+                    $ <span>curl</span> -X POST /api/webhook<br>
+                    &nbsp;&nbsp;-d '{"food": "three eggs in olive oil, a fuji apple, and peanut butter"}'
+                </div>
+                <div class="demo-output">
+                    <div class="cal-line">Logged 560 cal</div>
+                    <div class="cal-item">• three eggs in olive oil: 290 cal</div>
+                    <div class="cal-item">• fuji apple: 80 cal</div>
+                    <div class="cal-item">• peanut butter: 190 cal</div>
+                    <div class="cal-total">Daily total: 560 / 2,600 — Remaining: 2,040</div>
+                </div>
+            </div>
+        </div>
 
-    <h2>Data Sharing</h2>
-    <p>No data is shared with third parties for marketing, advertising, or any other commercial purpose. No data is sold. Message contents are only processed through the AI API strictly for calorie estimation.</p>
+        <div class="section" style="animation: fadeIn 0.6s 0.5s ease both;">
+            <div class="section-header">How It Works</div>
+            <div class="steps-list">
+                <div class="step">
+                    <div class="step-num">1</div>
+                    <div class="step-text"><strong>Describe your meal</strong> in natural language via an iPhone Shortcut. No menus, no barcode scanning, no searching a database.</div>
+                </div>
+                <div class="step">
+                    <div class="step-num">2</div>
+                    <div class="step-text"><strong>A Vercel serverless function</strong> receives the text and sends it to the Claude API, which estimates calories for each item and returns structured JSON.</div>
+                </div>
+                <div class="step">
+                    <div class="step-num">3</div>
+                    <div class="step-text"><strong>The function logs everything</strong> to a Google Sheet — date, time, items, calories, and a running daily total — then sends back a plain-text summary.</div>
+                </div>
+            </div>
+        </div>
 
-    <h2>Data Retention</h2>
-    <p>Calorie log data is retained in a private spreadsheet indefinitely for personal tracking purposes. The application owner may delete this data at any time.</p>
+        <div class="section" style="animation: fadeIn 0.6s 0.55s ease both;">
+            <div class="section-header">Stack</div>
+            <div class="stack-grid">
+                <div class="stack-item">
+                    <div class="stack-item-name">Python</div>
+                    <div class="stack-item-role">Serverless function</div>
+                </div>
+                <div class="stack-item">
+                    <div class="stack-item-name">Claude API</div>
+                    <div class="stack-item-role">Calorie estimation via LLM</div>
+                </div>
+                <div class="stack-item">
+                    <div class="stack-item-name">Vercel</div>
+                    <div class="stack-item-role">Hosting & deployment</div>
+                </div>
+                <div class="stack-item">
+                    <div class="stack-item-name">Google Sheets</div>
+                    <div class="stack-item-role">Data storage & logging</div>
+                </div>
+                <div class="stack-item">
+                    <div class="stack-item-name">Apple Shortcuts</div>
+                    <div class="stack-item-role">Mobile input interface</div>
+                </div>
+                <div class="stack-item">
+                    <div class="stack-item-name">gspread</div>
+                    <div class="stack-item-role">Sheets API client</div>
+                </div>
+            </div>
+        </div>
 
-    <h2>Contact</h2>
-    <p>For questions about this privacy policy, contact the application owner directly via the registered phone number.</p>
+        <footer class="footer">
+            <span class="footer-text">Built by Clay Marquardt, 2025</span>
+            <a href="https://github.com/claymarquardt/calorie-tracker" class="footer-link">View on GitHub →</a>
+        </footer>
+
+    </div>
 </body>
 </html>
