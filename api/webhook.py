@@ -112,8 +112,19 @@ class handler(BaseHTTPRequestHandler):
         body = self.rfile.read(content_length).decode("utf-8")
 
         # Parse the form data to extract the text message
-        parsed = parse_qs(body)
-        food_description = parsed.get("Body", [""])[0]
+        # Check if this is from Apple Shortcuts (JSON) or Twilio (form data)
+        content_type = self.headers.get("Content-Type", "")
+
+        if "applications/json" in content_type:
+            # From Apple Shortcuts
+            data = json.loads(body)
+            food_description = data.get("food", "")
+            source = "shortcuts"
+        else:
+            # From Twilio
+            parsed = parse_qs(body)
+            food_description = parsed.get("Body", [""])[0]
+            source = "twilio"
 
         try:
             # Send to Claude for calorie estimation
@@ -129,10 +140,16 @@ class handler(BaseHTTPRequestHandler):
             reply_text = f"Error logging calories: {str(e)}"
 
         # Send TwiML response back to Twilio
-        twiml = MessagingResponse()
-        twiml.message(reply_text)
-
-        self.send_response(200)
-        self.send_header("Content-Type", "text/xml")
-        self.end_headers()
-        self.wfile.write(str(twiml).encode("utf-8"))
+        if source == "twilio":
+            twiml = MessagingResponse()
+            twiml.message(reply_text)
+    
+            self.send_response(200)
+            self.send_header("Content-Type", "text/xml")
+            self.end_headers()
+            self.wfile.write(str(twiml).encode("utf-8"))
+        else: 
+            self.send_response(200)
+            self.send_header("Content-Type", "text/plain")
+            self.end_headers()
+            self.wfile.write(reply_text.encode("utf-8"))
