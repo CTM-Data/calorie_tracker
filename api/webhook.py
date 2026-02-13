@@ -143,13 +143,21 @@ class handler(BaseHTTPRequestHandler):
             calorie_data = estimate_calories(food_description)
         except Exception as e:
             reply_text = f"Error in estimate_calories: {str(e)}"
-            # send reply_text back and return
+            self.send_response(200)
+            self.send_header("Content-Type", "text/plain")
+            self.end_headers()
+            self.wfile.write(reply_text.encode("utf-8"))
+            return
 
         try:
             daily_total = log_to_sheets(food_description, calorie_data)
         except Exception as e:
             reply_text = f"Error in log_to_sheets: {str(e)}"
-            # send reply_text back and return
+            self.send_response(200)
+            self.send_header("Content-Type", "text/plain")
+            self.end_headers()
+            self.wfile.write(reply_text.encode("utf-8"))
+            return
 
         try:
             reply_text = build_reply(calorie_data, daily_total)
