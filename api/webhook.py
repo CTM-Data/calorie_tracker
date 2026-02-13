@@ -48,13 +48,21 @@ def estimate_calories(food_description):
                 ],
                 "total_calories": 350
             }
-
+            Do NOT wrap your response in markdown code fences or backticks. Return raw JSON only.
             Be reasonable with estimates. Use typical serving sizes when not specified. 
             Round calories to the nearest 5.""",
     )
 
     # Parse Claude's JSON response
     response_text = message.content[0].text
+    
+    # Strip markdown code fences if present
+    response_text = response_text.strip()
+    if response_text.startswith("```"):
+        response_text = response_text.split("\n", 1)[1]  # remove first line
+        response_text = response_text.rsplit("```", 1)[0]  # remove closing fence
+        response_text = response_text.strip()
+    
     print(f"DEBUG - Claude response: '{response_text}'")
     return json.loads(response_text)
 
