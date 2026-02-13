@@ -126,18 +126,35 @@ class handler(BaseHTTPRequestHandler):
             food_description = parsed.get("Body", [""])[0]
             source = "twilio"
 
+        # try:
+        #     # Send to Claude for calorie estimation
+        #     calorie_data = estimate_calories(food_description)
+
+        #     # Log to Google Sheets and get daily total
+        #     daily_total = log_to_sheets(food_description, calorie_data)
+
+        #     # Build the reply message
+        #     reply_text = build_reply(calorie_data, daily_total)
+
+        # except Exception as e:
+        #     reply_text = f"Error logging calories: {str(e)}"
+
         try:
-            # Send to Claude for calorie estimation
             calorie_data = estimate_calories(food_description)
-
-            # Log to Google Sheets and get daily total
-            daily_total = log_to_sheets(food_description, calorie_data)
-
-            # Build the reply message
-            reply_text = build_reply(calorie_data, daily_total)
-
         except Exception as e:
-            reply_text = f"Error logging calories: {str(e)}"
+            reply_text = f"Error in estimate_calories: {str(e)}"
+            # send reply_text back and return
+
+        try:
+            daily_total = log_to_sheets(food_description, calorie_data)
+        except Exception as e:
+            reply_text = f"Error in log_to_sheets: {str(e)}"
+            # send reply_text back and return
+
+        try:
+            reply_text = build_reply(calorie_data, daily_total)
+        except Exception as e:
+            reply_text = f"Error in build_reply: {str(e)}"
 
         # Send TwiML response back to Twilio
         if source == "twilio":
