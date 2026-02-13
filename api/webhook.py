@@ -139,6 +139,8 @@ class handler(BaseHTTPRequestHandler):
         # except Exception as e:
         #     reply_text = f"Error logging calories: {str(e)}"
 
+        print(f"DEBUG - food_description: '{food_description}', length: {len(food_description)}")
+
         try:
             calorie_data = estimate_calories(food_description)
         except Exception as e:
