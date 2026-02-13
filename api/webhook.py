@@ -55,6 +55,7 @@ def estimate_calories(food_description):
 
     # Parse Claude's JSON response
     response_text = message.content[0].text
+    print(f"DEBUG - Claude response: '{response_text}'")
     return json.loads(response_text)
 
 
