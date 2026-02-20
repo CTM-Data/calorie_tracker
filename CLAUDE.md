@@ -5,9 +5,9 @@ Read it before making any changes.
 
 ## What This Is
 
-A personal calorie tracker for a single user. The user sends a text message (via Apple
-Shortcuts or Twilio SMS) to a Vercel serverless endpoint. The app uses Claude to estimate
-calories, then logs the result to a Google Sheet.
+A personal calorie tracker for a single user. The user sends a text message via Apple
+Shortcuts to a Vercel serverless endpoint. The app uses Claude to estimate calories,
+then logs the result to a Google Sheet.
 
 **This is a personal tool, not a product.** It is intentionally simple. Do not add
 abstraction layers, configuration systems, or features that aren't explicitly requested.
@@ -15,7 +15,7 @@ abstraction layers, configuration systems, or features that aren't explicitly re
 ## Architecture
 
 ```
-User input (Apple Shortcuts JSON or Twilio SMS)
+User input (Apple Shortcuts JSON)
     ↓
 POST /api/webhook  (Vercel serverless, FastAPI ASGI app)
     ↓
@@ -28,7 +28,7 @@ classify_intent()  (regex router — NO AI involved in routing)
 │ summary → Sheets                     │
 └──────────────────────────────────────┘
     ↓
-Plain text reply (Shortcuts) or TwiML XML (Twilio)
+Plain text reply → Apple Shortcuts notification
 ```
 
 ## File Structure
@@ -47,14 +47,14 @@ README.md                   User-facing project overview
 
 **Single webhook endpoint.** All input — logging, editing, deleting, summary — goes through
 `POST /api/webhook`. Intent is classified by regex, not AI. This keeps the Apple Shortcut
-simple (one URL, one action).
+simple: one URL, one action, plain JSON body.
 
 **Regex routing, not NLP.** The user controls both the input (Shortcuts) and the endpoint,
 so there's no ambiguity to resolve. Regex is faster, cheaper, and more predictable than
 using Claude to classify intent. The command syntax is:
 - `"<anything>"` → log calories (default)
 - `"summary"` / `"today"` / `"total"` → daily summary
-- `"edit 2 grilled chicken"` → update today's entry #2
+- `"edit 2 grilled chicken"` → update today's entry #2 (full replacement or partial correction)
 - `"delete 2"` → remove today's entry #2
 
 **Entry numbers are 1-based and today-scoped.** When a user logs food, the reply includes

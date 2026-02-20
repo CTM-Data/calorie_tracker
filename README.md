@@ -4,7 +4,7 @@ Personal calorie tracker: send a text → AI estimates calories → logs to Goog
 
 ## How It Works
 
-1. **Trigger**: Open an Apple Shortcut (or send an SMS via Twilio)
+1. **Trigger**: Open an Apple Shortcut
 2. **Input**: Type what you ate in plain English
 3. **Processing**: Vercel serverless function calls Claude to estimate calories
 4. **Storage**: Entry is logged to a Google Sheet with a running daily total
@@ -53,7 +53,6 @@ Remaining: 1700 cal
 - **Framework**: [FastAPI](https://fastapi.tiangolo.com)
 - **AI**: [Claude](https://anthropic.com) (`claude-sonnet-4`) for calorie estimation
 - **Storage**: Google Sheets via [gspread](https://gspread.readthedocs.io)
-- **SMS (optional)**: [Twilio](https://twilio.com)
 
 ## Setup
 
