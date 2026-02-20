@@ -28,6 +28,21 @@ DAILY_CALORIE_TARGET = 2600
 # so there's no real ambiguity. Regex is instant, free, and predictable.
 # ---------------------------------------------------------------------------
 
+# Mapping for spelled-out numbers, e.g. from voice input ("delete three")
+_WORD_TO_NUM = {
+    "one": 1, "two": 2, "three": 3, "four": 4, "five": 5,
+    "six": 6, "seven": 7, "eight": 8, "nine": 9, "ten": 10,
+    "eleven": 11, "twelve": 12, "thirteen": 13, "fourteen": 14, "fifteen": 15,
+    "sixteen": 16, "seventeen": 17, "eighteen": 18, "nineteen": 19, "twenty": 20,
+}
+
+def _parse_num(s: str) -> int:
+    """Convert a digit string or spelled-out number to int."""
+    return _WORD_TO_NUM.get(s.lower(), None) or int(s)
+
+_NUM_PATTERN = r"(\d+|" + "|".join(_WORD_TO_NUM) + r")"
+
+
 def classify_intent(text: str) -> dict:
     """
     Inspect the incoming text and return a dict describing what action to take.
@@ -46,29 +61,30 @@ def classify_intent(text: str) -> dict:
 
     # --- Delete ---
     # Matches: "delete 2", "remove 2", "delete entry 2", "remove entry 2"
-    # The \b at the end prevents "delete 20" from matching "delete 2".
-    m = re.match(r"^(?:delete|remove)(?:\s+entry)?\s+(\d+)\b", t, re.IGNORECASE)
+    # Also matches spelled-out numbers: "delete three", "remove entry five"
+    m = re.match(r"^(?:delete|remove)(?:\s+entry)?\s+" + _NUM_PATTERN + r"\b", t, re.IGNORECASE)
     if m:
-        return {"intent": "delete", "entry_num": int(m.group(1))}
+        return {"intent": "delete", "entry_num": _parse_num(m.group(1))}
 
     # --- Edit ---
     # Matches: "edit 2 sorry it was one egg"
     #          "update 2: I think you overestimated the peanut butter"
     #          "fix entry 2 it was salmon not chicken"
+    # Also matches spelled-out numbers: "edit three it was salmon not chicken"
     #
     # The entry number is captured as group 1.
     # Everything after the number (and optional colon/space) is the edit
     # instruction — it can be a full replacement description OR a natural
     # language correction. Claude figures out the difference (see handle_edit).
     m = re.match(
-        r"^(?:edit|update|change|fix|correct)(?:\s+entry)?\s+(\d+)[:\s]+(.+)",
+        r"^(?:edit|update|change|fix|correct)(?:\s+entry)?\s+" + _NUM_PATTERN + r"[:\s]+(.+)",
         t,
         re.IGNORECASE,
     )
     if m:
         return {
             "intent": "edit",
-            "entry_num": int(m.group(1)),
+            "entry_num": _parse_num(m.group(1)),
             "edit_instruction": m.group(2).strip(),  # raw instruction, not a full description
         }
 
