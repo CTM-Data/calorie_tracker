@@ -14,7 +14,7 @@ from services.sheets_service import (
 app = FastAPI()
 
 # The user's daily calorie target. Change this directly if your target changes.
-DAILY_CALORIE_TARGET = 2600
+DAILY_CALORIE_TARGET = 2000
 
 
 # ---------------------------------------------------------------------------
