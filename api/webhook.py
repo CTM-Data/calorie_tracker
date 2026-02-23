@@ -38,7 +38,8 @@ _WORD_TO_NUM = {
 
 def _parse_num(s: str) -> int:
     """Convert a digit string or spelled-out number to int."""
-    return _WORD_TO_NUM.get(s.lower(), None) or int(s)
+    s = re.sub(r"[^\w]", "", s).lower()  # strip punctuation, then lowercase
+    return _WORD_TO_NUM.get(s, None) or int(s)
 
 _NUM_PATTERN = r"(\d+|" + "|".join(_WORD_TO_NUM) + r")"
 
@@ -77,7 +78,7 @@ def classify_intent(text: str) -> dict:
     # instruction — it can be a full replacement description OR a natural
     # language correction. Claude figures out the difference (see handle_edit).
     m = re.match(
-        r"^(?:edit|update|change|fix|correct)(?:\s+entry)?\s+" + _NUM_PATTERN + r"[:\s]+(.+)",
+        r"^(?:edit|update|change|fix|correct)(?:\s+entry)?\s+" + _NUM_PATTERN + r"[\s,;:.]+(.+)",
         t,
         re.IGNORECASE,
     )
